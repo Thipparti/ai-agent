@@ -1,0 +1,361 @@
+# Create updated index.html with premium design
+@"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Agent - Neural Thinking Log</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="gradient-bg">
+        <div class="gradient-sphere"></div>
+        <div class="gradient-sphere-2"></div>
+        <div class="gradient-sphere-3"></div>
+    </div>
+
+    <div class="app">
+        <!-- Premium Header with Neural Animation -->
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                    <div class="neural-ring"></div>
+                </div>
+                <div class="logo-text">
+                    <h1>Neural<span>Agent</span></h1>
+                    <div class="ai-badge">
+                        <i class="fas fa-microchip"></i>
+                        <span>v2.0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="connection-status">
+                    <div class="status-dot"></div>
+                    <div class="status-pulse"></div>
+                    <span class="status-text">Active</span>
+                </div>
+                
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span id="liveTime">00:00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-bolt"></i>
+                        <span>Live</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <div class="main-container">
+            <!-- Left Panel - Quantum Query Input -->
+            <div class="query-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-terminal"></i> Quantum Query</h2>
+                    <div class="panel-badge">
+                        <i class="fas fa-circle"></i>
+                        <span>Ready</span>
+                    </div>
+                </div>
+                
+                <div class="input-wrapper">
+                    <textarea 
+                        id="queryInput" 
+                        placeholder="Ask anything... e.g., 'What's the weather in Paris and its famous landmark?'"
+                        rows="4"
+                    ></textarea>
+                    <div class="input-glow"></div>
+                </div>
+                
+                <button id="submitBtn" class="btn-primary">
+                    <span>Execute Query</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <div class="btn-shine"></div>
+                </button>
+                
+                <!-- Neural Network Sample Queries -->
+                <div class="samples-section">
+                    <div class="samples-header">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Neural Samples</h3>
+                        <span class="samples-count">3</span>
+                    </div>
+                    
+                    <div class="sample-grid">
+                        <button class="sample-card" data-query="What's the weather in London?">
+                            <div class="sample-icon">
+                                <i class="fas fa-cloud-sun"></i>
+                            </div>
+                            <div class="sample-info">
+                                <span class="sample-title">Weather Query</span>
+                                <span class="sample-desc">London weather</span>
+                            </div>
+                            <div class="sample-glow"></div>
+                        </button>
+                        
+                        <button class="sample-card" data-query="Tell me about Eiffel Tower">
+                            <div class="sample-icon">
+                                <i class="fas fa-landmark"></i>
+                            </div>
+                            <div class="sample-info">
+                                <span class="sample-title">Landmark Info</span>
+                                <span class="sample-desc">Eiffel Tower</span>
+                            </div>
+                            <div class="sample-glow"></div>
+                        </button>
+                        
+                        <button class="sample-card" data-query="Current time in Tokyo">
+                            <div class="sample-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="sample-info">
+                                <span class="sample-title">Time Query</span>
+                                <span class="sample-desc">Tokyo time</span>
+                            </div>
+                            <div class="sample-glow"></div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="quick-stats">
+                    <div class="stat-row">
+                        <div class="stat-label">
+                            <i class="fas fa-microchip"></i>
+                            <span>Model</span>
+                        </div>
+                        <div class="stat-value">GPT-4</div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-label">
+                            <i class="fas fa-temperature-high"></i>
+                            <span>Temperature</span>
+                        </div>
+                        <div class="stat-value">0.7</div>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-label">
+                            <i class="fas fa-brain"></i>
+                            <span>Tokens</span>
+                        </div>
+                        <div class="stat-value">∞</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Neural Thinking Log -->
+            <div class="log-panel">
+                <div class="log-header">
+                    <div class="log-header-left">
+                        <h2><i class="fas fa-network-wired"></i> Cognitive Neural Trace</h2>
+                        <div class="live-indicator">
+                            <span class="live-dot"></span>
+                            <span>Live Stream</span>
+                        </div>
+                    </div>
+                    
+                    <div class="log-controls">
+                        <button id="clearLog" class="btn-icon" title="Clear neural trace">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <button id="exportLog" class="btn-icon" title="Export neural data">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button id="settingsBtn" class="btn-icon" title="Settings">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Thinking Log Container with Neural Animation -->
+                <div id="thinkingLog" class="thinking-log">
+                    <div class="log-welcome">
+                        <div class="neural-placeholder">
+                            <div class="placeholder-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h3>Neural Network Active</h3>
+                            <p>Your agent's cognitive process will appear here in real-time</p>
+                            <div class="placeholder-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Log Footer -->
+                <div class="log-footer">
+                    <div class="footer-stats">
+                        <div class="footer-stat">
+                            <i class="fas fa-list"></i>
+                            <span id="logCount">0</span> events
+                        </div>
+                        <div class="footer-stat">
+                            <i class="fas fa-clock"></i>
+                            <span id="lastUpdate">Ready</span>
+                        </div>
+                    </div>
+                    <div class="footer-progress">
+                        <div class="progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Card Templates with Neural Design -->
+    
+    <!-- Thought Template - Neural Yellow -->
+    <template id="thoughtTemplate">
+        <div class="log-entry thought">
+            <div class="entry-glow"></div>
+            <div class="entry-header">
+                <div class="entry-icon-wrapper">
+                    <i class="fas fa-brain entry-icon"></i>
+                </div>
+                <div class="entry-type-wrapper">
+                    <span class="entry-type">Neural Thought</span>
+                    <span class="entry-subtype">Processing</span>
+                </div>
+                <span class="entry-time"></span>
+            </div>
+            <div class="entry-content">
+                <div class="thought-message"></div>
+            </div>
+            <div class="entry-footer">
+                <div class="confidence-badge">
+                    <span class="confidence-label">Confidence</span>
+                    <span class="confidence-value">98%</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Action Template - Neural Blue -->
+    <template id="actionTemplate">
+        <div class="log-entry action">
+            <div class="entry-glow"></div>
+            <div class="entry-header">
+                <div class="entry-icon-wrapper">
+                    <i class="fas fa-bolt entry-icon"></i>
+                </div>
+                <div class="entry-type-wrapper">
+                    <span class="entry-type">Neural Action</span>
+                    <span class="entry-subtype">Tool Call</span>
+                </div>
+                <span class="entry-time"></span>
+            </div>
+            <div class="entry-content">
+                <div class="action-header">
+                    <i class="fas fa-cog"></i>
+                    <span class="action-name"></span>
+                </div>
+                <div class="code-block">
+                    <pre class="action-details"></pre>
+                </div>
+            </div>
+            <div class="entry-footer">
+                <div class="tool-badge">
+                    <i class="fas fa-wrench"></i>
+                    <span>Tool Execution</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Observation Template - Neural Green -->
+    <template id="observationTemplate">
+        <div class="log-entry observation">
+            <div class="entry-glow"></div>
+            <div class="entry-header">
+                <div class="entry-icon-wrapper">
+                    <i class="fas fa-eye entry-icon"></i>
+                </div>
+                <div class="entry-type-wrapper">
+                    <span class="entry-type">Neural Observation</span>
+                    <span class="entry-subtype">Data Received</span>
+                </div>
+                <span class="entry-time"></span>
+            </div>
+            <div class="entry-content">
+                <div class="observation-header">
+                    <i class="fas fa-database"></i>
+                    <span>Response Data</span>
+                </div>
+                <div class="code-block">
+                    <pre class="observation-data"></pre>
+                </div>
+            </div>
+            <div class="entry-footer">
+                <div class="data-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Validated</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Response Template - Neural Purple -->
+    <template id="responseTemplate">
+        <div class="log-entry response">
+            <div class="entry-glow"></div>
+            <div class="entry-header">
+                <div class="entry-icon-wrapper">
+                    <i class="fas fa-comment-dots entry-icon"></i>
+                </div>
+                <div class="entry-type-wrapper">
+                    <span class="entry-type">Neural Response</span>
+                    <span class="entry-subtype">Final Output</span>
+                </div>
+                <span class="entry-time"></span>
+            </div>
+            <div class="entry-content">
+                <div class="response-message"></div>
+            </div>
+            <div class="entry-footer">
+                <div class="response-badge">
+                    <i class="fas fa-star"></i>
+                    <span>Final Answer</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <script src="scripts/app.js"></script>
+    
+    <!-- Live Time Update Script -->
+    <script>
+        function updateLiveTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('liveTime').textContent = timeStr;
+        }
+        setInterval(updateLiveTime, 1000);
+        updateLiveTime();
+    </script>
+</body>
+</html>
+"@ | Out-File -FilePath frontend\index.html -Encoding utf8 -Force
