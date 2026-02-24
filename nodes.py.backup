@@ -1,0 +1,324 @@
+"""
+Agent Nodes for AI Research Agent
+Contains planning, search, evaluate, and analysis nodes
+"""
+
+import json
+import sys
+import os
+from datetime import datetime
+from typing import Dict, Any
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage, SystemMessage
+from dotenv import load_dotenv
+
+# Handle imports properly
+try:
+    # Try relative imports first (when used as a module)
+    from .state import ResearchState, ThoughtType, add_thought
+    from .tools import SearchTool
+except ImportError:
+    # If relative imports fail, add parent directory to path
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from agent.state import ResearchState, ThoughtType, add_thought
+    from agent.tools import SearchTool
+
+# Load environment variables
+def find_env_file():
+    """Find .env file by walking up directories"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    while current_dir != os.path.dirname(current_dir):
+        env_path = os.path.join(current_dir, '.env')
+        if os.path.exists(env_path):
+            return env_path
+        current_dir = os.path.dirname(current_dir)
+    return None
+
+env_path = find_env_file()
+if env_path:
+    print(f"✅ Found .env at: {env_path}")
+    load_dotenv(env_path)
+
+class ResearchNodes:
+    def __init__(self):
+        """Initialize nodes with LLM and search tool"""
+        print("🔧 Initializing ResearchNodes...")
+        
+        # Check Groq API key
+        groq_key = os.getenv("GROQ_API_KEY")
+        if not groq_key:
+            print("⚠️  Warning: GROQ_API_KEY not found in .env file")
+            self.llm = None
+        else:
+            print(f"✅ GROQ_API_KEY found: {groq_key[:8]}...")
+            # Initialize Groq LLM with CURRENT supported model
+            self.llm = ChatGroq(
+                temperature=0.7,
+                groq_api_key=groq_key,
+                model_name="llama3-70b-8192"  # Updated: mixtral is deprecated
+                # Other options:
+                # "llama3-8b-8192" - Faster, good for simple tasks
+                # "gemma2-9b-it" - Another option
+            )
+        
+        # Initialize search tool
+        self.search_tool = SearchTool()
+        print("✅ ResearchNodes initialized")
+    
+    def planning_node(self, state: ResearchState) -> ResearchState:
+        """Create a research plan"""
+        # Add planning thought
+        state = add_thought(
+            state,
+            ThoughtType.PLANNING,
+            f"Creating research plan for: '{state['query']}'",
+            {"query": state['query']}
+        )
+        
+        if not self.llm:
+            state = add_thought(
+                state,
+                ThoughtType.ERROR,
+                "LLM not initialized. Check GROQ_API_KEY",
+                {"error": "No LLM available"}
+            )
+            state["research_plan"] = [state['query']]
+            state["status"] = "researching"
+            state["current_step"] = 0
+            return state
+        
+        system_prompt = """You are a research planning expert. Break down complex queries into 
+        specific research steps. Each step should be a focused search query that will help 
+        answer the main question."""
+        
+        human_prompt = f"""Create a research plan for: {state['query']}
+        
+        Return a JSON object with:
+        1. "steps": List of 3-5 specific search queries needed
+        2. "reasoning": Brief explanation of your plan
+        
+        Format: {{"steps": ["query1", "query2"], "reasoning": "explanation"}}"""
+        
+        try:
+            response = self.llm.invoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_prompt)
+            ])
+            
+            # Extract JSON from response
+            content = response.content
+            start_idx = content.find('{')
+            end_idx = content.rfind('}') + 1
+            
+            if start_idx != -1 and end_idx != 0:
+                json_str = content[start_idx:end_idx]
+                plan_data = json.loads(json_str)
+                state["research_plan"] = plan_data.get("steps", [state['query']])
+                
+                state = add_thought(
+                    state,
+                    ThoughtType.REASONING,
+                    f"Plan: {plan_data.get('reasoning', 'No reasoning provided')}",
+                    {"steps": len(state["research_plan"])}
+                )
+            else:
+                raise ValueError("No JSON found in response")
+                
+        except Exception as e:
+            print(f"Planning error: {e}")
+            # Fallback plan
+            state["research_plan"] = [state['query']]
+            state = add_thought(
+                state,
+                ThoughtType.REASONING,
+                f"Using simple plan (error: {str(e)[:50]}...)",
+                {"fallback": True}
+            )
+        
+        state["status"] = "researching"
+        state["current_step"] = 0
+        return state
+    
+    def search_node(self, state: ResearchState) -> ResearchState:
+        """Execute search for current step"""
+        current_query = state["research_plan"][state["current_step"]]
+        
+        state = add_thought(
+            state,
+            ThoughtType.SEARCHING,
+            f"Searching: '{current_query}'",
+            {"step": state["current_step"] + 1, "total": len(state["research_plan"])}
+        )
+        
+        # Perform search
+        results = self.search_tool.search(current_query)
+        state["search_results"].extend(results)
+        state["search_queries"].append(current_query)
+        
+        state = add_thought(
+            state,
+            ThoughtType.ANALYZING,
+            f"Found {len(results)} results",
+            {"result_count": len(results)}
+        )
+        
+        return state
+    
+    def evaluate_node(self, state: ResearchState) -> ResearchState:
+        """Evaluate if we have enough information"""
+        if not self.llm:
+            # Simple evaluation: move to next step or analyze
+            if state["current_step"] < len(state["research_plan"]) - 1:
+                state["current_step"] += 1
+                state["status"] = "researching"
+            else:
+                state["status"] = "analyzing"
+            return state
+        
+        context = self.search_tool.format_for_context(state["search_results"])
+        
+        system_prompt = """You are a research evaluator. Determine if the collected information 
+        sufficiently answers the original query."""
+        
+        human_prompt = f"""Original Query: {state['query']}
+        
+        Progress: Step {state['current_step'] + 1}/{len(state['research_plan'])}
+        
+        Information collected:
+        {context}
+        
+        Return JSON:
+        {{
+            "sufficient": true/false,
+            "reasoning": "explanation",
+            "confidence": 0-100
+        }}"""
+        
+        try:
+            response = self.llm.invoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_prompt)
+            ])
+            
+            content = response.content
+            start_idx = content.find('{')
+            end_idx = content.rfind('}') + 1
+            
+            if start_idx != -1 and end_idx != 0:
+                json_str = content[start_idx:end_idx]
+                evaluation = json.loads(json_str)
+                
+                state = add_thought(
+                    state,
+                    ThoughtType.EVALUATING,
+                    evaluation.get('reasoning', 'Evaluating results'),
+                    {"sufficient": evaluation.get("sufficient", False)}
+                )
+                
+                if evaluation.get("sufficient", False):
+                    state["status"] = "analyzing"
+                elif state["current_step"] < len(state["research_plan"]) - 1:
+                    state["current_step"] += 1
+                    state["status"] = "researching"
+                else:
+                    state["status"] = "analyzing"
+            else:
+                raise ValueError("No JSON in response")
+                
+        except Exception as e:
+            print(f"Evaluation error: {e}")
+            # Default to moving to next step or analyze
+            if state["current_step"] < len(state["research_plan"]) - 1:
+                state["current_step"] += 1
+                state["status"] = "researching"
+            else:
+                state["status"] = "analyzing"
+        
+        return state
+    
+    def analysis_node(self, state: ResearchState) -> ResearchState:
+        """Generate final answer"""
+        if not self.llm:
+            state["final_answer"] = "Cannot generate answer: LLM not initialized"
+            state["status"] = "completed"
+            return state
+        
+        context = self.search_tool.format_for_context(state["search_results"])
+        
+        state = add_thought(
+            state,
+            ThoughtType.ANALYZING,
+            f"Synthesizing {len(state['search_results'])} results into final answer",
+            {"total_results": len(state["search_results"])}
+        )
+        
+        system_prompt = """You are a research analyst. Synthesize the collected information 
+        into a comprehensive, well-structured answer. Include key findings and cite sources."""
+        
+        human_prompt = f"""Original Query: {state['query']}
+        
+        Research Performed:
+        - Total searches: {len(state['search_queries'])}
+        - Search queries: {', '.join(state['search_queries'])}
+        
+        Collected Information:
+        {context}
+        
+        Provide a comprehensive answer that:
+        1. Directly addresses the query
+        2. Synthesizes information from multiple sources
+        3. Cites sources where appropriate
+        4. Notes any limitations or uncertainties
+        
+        Format your answer in clear sections with markdown headers."""
+        
+        response = self.llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt)
+        ])
+        
+        state["final_answer"] = response.content
+        
+        state = add_thought(
+            state,
+            ThoughtType.COMPLETED,
+            "Research complete! Final answer generated.",
+            {"answer_length": len(response.content)}
+        )
+        
+        state["status"] = "completed"
+        return state
+
+# Test the nodes
+if __name__ == "__main__":
+    print("=" * 50)
+    print("🧪 Testing ResearchNodes")
+    print("=" * 50)
+    
+    # Check Groq API key
+    groq_key = os.getenv("GROQ_API_KEY")
+    if not groq_key:
+        print("❌ GROQ_API_KEY not found in .env file")
+    else:
+        print(f"✅ GROQ_API_KEY found: {groq_key[:8]}...")
+        
+        # Initialize nodes
+        nodes = ResearchNodes()
+        
+        # Create test state
+        try:
+            from agent.state import create_initial_state
+        except ImportError:
+            from state import create_initial_state
+            
+        test_state = create_initial_state("What is LangGraph?")
+        
+        # Test planning node
+        print("\n🔬 Testing planning_node...")
+        test_state = nodes.planning_node(test_state)
+        print(f"✅ Plan created with {len(test_state['research_plan'])} steps")
+        print(f"📋 Steps: {test_state['research_plan']}")
+        
+        print("\n✅ Nodes test complete!")
+    
+    print("\n" + "=" * 50)
